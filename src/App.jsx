@@ -30,13 +30,6 @@ const opts = {
 }
 
 // Constant
-
-const TEST_GIFS = [
-  'https://media.giphy.com/media/9gISqB3tncMmY/giphy.gif',
-  'https://media.giphy.com/media/3o84sq21TxDH6PyYms/giphy.gif',
-  'https://media.giphy.com/media/3ornjSL2sBcPflIDiU/giphy.gif'
-]
-
 const App = () => {
   // State
   const [walletAddress, setWalletAddress] = useState(null);
@@ -105,6 +98,25 @@ const App = () => {
     }
   };
 
+  const upVote = async (item) => {
+    try {
+      const provider = getProvider();
+      const program = new Program(idl, programID, provider);
+  
+      await program.rpc.addUpvote(item.gifLink, item.userAddress, {
+        accounts: {
+          baseAccount: baseAccount.publicKey,
+          user: provider.wallet.publicKey,
+        },
+      });
+      console.log("GIF upvote sent to program", inputValue)
+  
+      await getGifList();
+    } catch (error) {
+      console.log("Error sending GIF:", error)
+    }
+  };
+ 
   const onInputChange = (event) => {
     const { value } = event.target;
     setInputValue(value);
@@ -181,11 +193,13 @@ const App = () => {
             </button>
           </form>
           <div className="gif-grid">
-  					{/* We use index as the key instead, also, the src is now item.gifLink */}
             {gifList.map((item, index) => (
               <div className="gif-item" key={index}>
                 <img src={item.gifLink}/>
                 {(item.userAddress.toString() == walletAddress) && owner()}
+            <button type="submit" onClick={() => upVote(item)} className="cta-button submit-gif-button up-vote">
+              {item.upVote} upvote
+            </button>
               </div>
             ))}
           </div>
